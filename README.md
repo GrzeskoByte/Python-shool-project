@@ -12,3 +12,4 @@
 - u have to obtain following files in root directory:
     - yolo3.cfg
     - yolov3.weights
+    - coco.names (for yolov3)

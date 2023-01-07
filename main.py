@@ -39,8 +39,7 @@ class App:
             except:
                 # Jeśli otwarcie pliku jako obrazu się nie powiedzie, wyświetlamy komunikat o błędzie
                 messagebox.showerror("Błąd", "Nie można otworzyć pliku jako obrazu")
-        
-    
+            
     def draw_objects(self):
                 # Wczytaj zdjęcie i przekształć je na skalę szarości
         image = cv2.imread(self.file_path)
@@ -61,9 +60,8 @@ class App:
         cv2.waitKey(0)
         cv2.destroyAllWindows()
 
-
     def detect_objects(self):
-        # Wczytaj zdjęcie
+    # Wczytaj zdjęcie
         image = cv2.imread(self.file_path)
 
         # Pobierz model YOLO z repozytorium OpenCV
@@ -106,21 +104,65 @@ class App:
         data = {
             "objects": []
         }
-   
+        # Przygotuj zdjęcie do przetworzenia przez model
+        blob = cv2.dnn.blobFromImage(image, 1 / 255.0, (416, 416), swapRB=True, crop=False)
 
-        for box in boxes:
+        # Wykonaj przez model predykcję
+        model.setInput(blob)
+        output_layers = model.getUnconnectedOutLayersNames()
+        output = model.forward(output_layers)
+
+        # Przetwórz wynik predykcji
+        boxes = []
+        confidences = []
+        class_ids = []
+        for output_layer in output:
+            for detection in output_layer:
+                scores = detection[5:]
+                class_id = np.argmax(scores)
+                confidence = scores[class_id]
+                if confidence > 0.5:
+                    box = detection[:4] * np.array([image.shape[1], image.shape[0], image.shape[1], image.shape[0]])
+                    center_x, center_y, width, height = box.astype("int")
+                    x = int(center_x - (width / 2))
+                    y = int(center_y - (height / 2))
+                    boxes.append([x, y, int(width), int(height)])
+                    confidences.append(float(confidence))
+                    class_ids.append(class_id)
+
+        # Zastosuj filtrowanie pudełek
+        indices = cv2.dnn.NMSBoxes(boxes, confidences, 0.5, 0.4)
+
+        # Przygotuj słownik z współrzędnymi obiektów
+        data = {
+            "objects": []
+        }
+
+        # Wczytaj nazwy klas z pliku "coco.names"
+        with open("coco.names", "r") as f:
+            class_names = f.read().strip().split("\n")
+
+        # Dla każdego znalezionego obiektu dodaj do słownika jego współrzędne oraz typ
+        for i in indices:
+            i = i[0]
+            box = boxes[i]
             x, y, w, h = box
             data["objects"].append({
+                "type": class_names[class_ids[i]],
                 "x": x,
                 "y": y,
                 "width": w,
                 "height": h
             })
+
         # Zapisz dane do pliku JSON
-        with open("objects.json", "w") as f:
+        with open("files/objects.json", "w") as f:
             json.dump(data, f)
-        self.json_path = "./objects.json"
+        self.json_path = "./files/objects.json"
         self.draw_objects()
+
+   
+
 
 root = tk.Tk()
 app = App(root)
