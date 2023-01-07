@@ -5,6 +5,7 @@ from PIL import Image, ImageTk
 import cv2
 import json
 import numpy as np
+import os
 class App:
     def __init__(self, root):
         self.root = root
@@ -22,7 +23,26 @@ class App:
 
         self.image_label = tk.Label(self.image_frame)
         self.image_label.pack()
+        
+         # Tworzymy ramkę na listę plików
+        self.files_frame = tk.LabelFrame(self.root, text="Pliki")
+        self.files_frame.pack(padx=10, pady=10, side="left")
 
+        # Tworzymy listę plików
+        self.files_listbox = tk.Listbox(self.files_frame)
+        self.files_listbox.pack(side="left")
+
+        # Wczytujemy pliki z folderu "files" do listy
+        self.load_files()
+
+
+    def load_files(self):
+            # Pobieramy listę plików z folderu "files"
+            files = os.listdir("files")
+            # Dla każdego pliku dodajemy jego nazwę do listy
+            for file in files:
+                self.files_listbox.insert(tk.END, file)
+                
     def load_image(self):
         # Otwieramy okno dialogowe do wyboru pliku
         file_path = filedialog.askopenfilename()
@@ -188,13 +208,17 @@ class App:
                 "width": w,
                 "height": h
             })
-
-
-
+        
+        file_name, file_extension = os.path.splitext(self.file_path)
+        # Odseparowujemy katalogi od nazwy pliku
+        _, file_name = os.path.split(file_name)
+        name="./files/"+ file_name + ".json"
+        print(name)
         # Zapisz dane do pliku JSON
-        with open("files/objects.json", "w") as f:
-            json.dump(data, f)
-        self.json_path = "./files/objects.json"
+        with open(name, "w") as f:
+             json.dump(data, f)
+
+        self.json_path = name
         self.draw_objects_from_json()
 
    
