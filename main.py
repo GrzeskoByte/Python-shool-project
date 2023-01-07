@@ -71,17 +71,20 @@ class App:
 
         # Dla każdego obiektu zapisanego w słowniku "data"
         for obj in data["objects"]:
-            # Pobierz współrzędne obiektu
+            # Pobierz współrzędne obiektu i nazwę
             if(obj["type"]=="car"):
                 x = obj["x"]
                 y = obj["y"]
                 w = obj["width"]
                 h = obj["height"]
+                name = obj["type"]
 
                 # Zdefiniuj punkty współrzędnych obrysu obiektu
                 points = np.array([[x, y], [x + w, y], [x + w, y + h], [x, y + h]], np.int32)
                 # Narysuj obrysy obiektu na obrazie
                 cv2.polylines(image, [points], True, (0, 255, 0), 2)
+                # Wypisz nazwę obiektu na obrazie
+                cv2.putText(image, name, (x, y - 10), cv2.FONT_HERSHEY_SIMPLEX, 3.0, (0, 255, 0), 2)
 
         # Wyświetl obraz z obrysem obiektów
         resized_image = cv2.resize(image, (600, 600))
@@ -195,8 +198,6 @@ class App:
         self.draw_objects_from_json()
 
    
-
-
 root = tk.Tk()
 app = App(root)
 root.mainloop()
