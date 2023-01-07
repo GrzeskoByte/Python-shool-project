@@ -41,7 +41,7 @@ class App:
                 messagebox.showerror("Błąd", "Nie można otworzyć pliku jako obrazu")
             
     def draw_objects(self):
-                # Wczytaj zdjęcie i przekształć je na skalę szarości
+        # Wczytaj zdjęcie i przekształć je na skalę szarości
         image = cv2.imread(self.file_path)
         gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
 
@@ -59,6 +59,36 @@ class App:
         cv2.imshow("Obiekty", resized_image)
         cv2.waitKey(0)
         cv2.destroyAllWindows()
+
+    def draw_objects_from_json(self):
+        # Wczytaj zdjęcie i przekształć je na skalę szarości
+        image = cv2.imread(self.file_path)
+        gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+
+        # Wczytaj dane z pliku JSON
+        with open(self.json_path, "r") as f:
+            data = json.load(f)
+
+        # Dla każdego obiektu zapisanego w słowniku "data"
+        for obj in data["objects"]:
+            # Pobierz współrzędne obiektu
+            if(obj["type"]=="car"):
+                x = obj["x"]
+                y = obj["y"]
+                w = obj["width"]
+                h = obj["height"]
+
+                # Zdefiniuj punkty współrzędnych obrysu obiektu
+                points = np.array([[x, y], [x + w, y], [x + w, y + h], [x, y + h]], np.int32)
+                # Narysuj obrysy obiektu na obrazie
+                cv2.polylines(image, [points], True, (0, 255, 0), 2)
+
+        # Wyświetl obraz z obrysem obiektów
+        resized_image = cv2.resize(image, (600, 600))
+        cv2.imshow("Obiekty", resized_image)
+        cv2.waitKey(0)
+        cv2.destroyAllWindows()
+
 
     def detect_objects(self):
     # Wczytaj zdjęcie
@@ -143,8 +173,9 @@ class App:
             class_names = f.read().strip().split("\n")
 
         # Dla każdego znalezionego obiektu dodaj do słownika jego współrzędne oraz typ
+        
+       
         for i in indices:
-            i = i[0]
             box = boxes[i]
             x, y, w, h = box
             data["objects"].append({
@@ -155,11 +186,13 @@ class App:
                 "height": h
             })
 
+
+
         # Zapisz dane do pliku JSON
         with open("files/objects.json", "w") as f:
             json.dump(data, f)
         self.json_path = "./files/objects.json"
-        self.draw_objects()
+        self.draw_objects_from_json()
 
    
 
