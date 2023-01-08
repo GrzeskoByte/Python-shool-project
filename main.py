@@ -37,12 +37,42 @@ class App:
 
 
     def load_files(self):
-            # Pobieramy listę plików z folderu "files"
-            files = os.listdir("files")
-            # Dla każdego pliku dodajemy jego nazwę do listy
-            for file in files:
-                self.files_listbox.insert(tk.END, file)
-                
+        # Pobieramy listę plików z folderu "files"
+        files = os.listdir("files")
+        # Dla każdego pliku dodajemy jego nazwę do listy
+        for file in files:
+            self.files_listbox.insert(tk.END, file)
+            
+        # Dla widgetu `self.files_listbox` wiążemy zdarzenie `<Double-Button-1>`
+        # (kliknięcie lewym przyciskiem myszy podwójnie) z funkcją switchImage
+        self.files_listbox.bind("<Double-Button-1>", self.switchImage)
+        
+    def switchImage(self, event):
+        # Pobieramy indeks elementu, na którym kliknięto
+        index = self.files_listbox.curselection()[0]
+        # Pobieramy nazwę pliku na podstawie indeksu
+        file = self.files_listbox.get(index)
+        path = "./files/"+file
+
+        with open(path, "r") as f:
+            data = json.load(f)
+    
+        self.file_path = data["objects"][0]["file_path"]
+        
+        # Wczytujemy obrazek z podanej ścieżki
+        image = Image.open(self.file_path)
+        image = image.resize((300, 300))
+        # Konwertujemy obrazek na format zgodny z tkinter
+        image = ImageTk.PhotoImage(image)
+        # Zmieniamy obrazek wyświetlany w widget self.image_label na nowy obrazek
+        self.image_label.configure(image=image)
+        self.image_label.image = image
+       
+   
+      
+       
+
+
     def load_image(self):
         # Otwieramy okno dialogowe do wyboru pliku
         file_path = filedialog.askopenfilename()
@@ -196,24 +226,27 @@ class App:
             class_names = f.read().strip().split("\n")
 
         # Dla każdego znalezionego obiektu dodaj do słownika jego współrzędne oraz typ
-        
+
+        file_name, file_extension = os.path.splitext(self.file_path)
+        # Odseparowujemy katalogi od nazwy pliku
+        _, file_name = os.path.split(file_name)
+        name="./files/"+ file_name + ".json"
        
         for i in indices:
             box = boxes[i]
             x, y, w, h = box
             data["objects"].append({
                 "type": class_names[class_ids[i]],
+                "file_path":self.file_path,
+                "file_name":file_name,
                 "x": x,
                 "y": y,
                 "width": w,
                 "height": h
             })
         
-        file_name, file_extension = os.path.splitext(self.file_path)
-        # Odseparowujemy katalogi od nazwy pliku
-        _, file_name = os.path.split(file_name)
-        name="./files/"+ file_name + ".json"
-        print(name)
+     
+        
         # Zapisz dane do pliku JSON
         with open(name, "w") as f:
              json.dump(data, f)
