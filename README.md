@@ -13,3 +13,4 @@
     - yolo3.cfg
     - yolov3.weights
     - coco.names (for yolov3)
+    - create empty "files" directory in root file
