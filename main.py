@@ -122,7 +122,7 @@ class App:
         # Dla każdego obiektu zapisanego w słowniku "data"
         for obj in data["objects"]:
             # Pobierz współrzędne obiektu i nazwę
-            if(obj["type"]=="car"):
+            if(obj["type"]=="truck"):
                 x = obj["x"]
                 y = obj["y"]
                 w = obj["width"]
