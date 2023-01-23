@@ -26,11 +26,20 @@ class App:
         
         
         self.files_frame = tk.LabelFrame(self.root, text="Pliki")
+
+        # Stwórz Scrollbar i przypisz go do LabelFrame
+        scrollbar = tk.Scrollbar(self.files_frame)
+        scrollbar.pack(side="right", fill="y")
+
+        # Przypisz Scrollbar do Listbox
+        self.files_listbox = tk.Listbox(self.files_frame, yscrollcommand=scrollbar.set)
+        self.files_listbox.pack()
+
+        # Przypisz Listbox do Scrollbar
+        scrollbar.config(command=self.files_listbox.yview)
+
         self.files_frame.pack(padx=10, pady=10, side="left")
 
-        
-        self.files_listbox = tk.Listbox(self.files_frame)
-        self.files_listbox.pack(side="left")
 
         
         self.load_files()
@@ -90,6 +99,7 @@ class App:
                     
                 self.load_files()
             except:
+                
                 messagebox.showerror("Błąd", "Nie można otworzyć pliku jako obrazu")
             
     # def draw_objects(self):
@@ -260,23 +270,6 @@ class App:
         self.json_path = name
         self.draw_objects_from_json()
         self.draw_objects()
-
-    def detect_outlines(self):
-        # Wczytaj zdjęcie
-        image = cv2.imread(self.file_path)
-        gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-        # Znajdź kontury obiektów
-        ret, thresh = cv2.threshold(gray, 127, 255, 0)
-        contours, _ = cv2.findContours(thresh, cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
-        # Iteruj przez kontury i znajdź ich środki
-        objects = []
-        for contour in contours:
-            M = cv2.moments(contour)
-            if M["m00"] != 0:
-                x = int(M["m10"] / M["m00"])
-                y = int(M["m01"] / M["m00"])
-                objects.append({"x": x, "y": y})
-        return objects
 
          
 root = tk.Tk()
