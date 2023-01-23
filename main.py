@@ -11,46 +11,46 @@ class App:
         self.root = root
         self.root.title("Zdjęcia")
 
-        # Tworzymy przycisk do wczytywania zdjęcia
+       
         self.load_button = tk.Button(self.root, text="Wczytaj zdjęcie", command=self.load_image)
         self.label_button = tk.Button(self.root, text="Etykietuj", command=self.detect_objects)
         self.load_button.pack(padx=10, pady=10)
         self.label_button.pack(padx=10, pady=12)
 
-        # Tworzymy pole z obrazkiem
+        
         self.image_frame = tk.LabelFrame(self.root, text="Wyświetlone zdjęcie")
         self.image_frame.pack(padx=10, pady=10)
 
         self.image_label = tk.Label(self.image_frame)
         self.image_label.pack()
         
-         # Tworzymy ramkę na listę plików
+        
         self.files_frame = tk.LabelFrame(self.root, text="Pliki")
         self.files_frame.pack(padx=10, pady=10, side="left")
 
-        # Tworzymy listę plików
+        
         self.files_listbox = tk.Listbox(self.files_frame)
         self.files_listbox.pack(side="left")
 
-        # Wczytujemy pliki z folderu "files" do listy
+        
         self.load_files()
 
 
     def load_files(self):
-        # Pobieramy listę plików z folderu "files"
+        
         files = os.listdir("files")
-        # Dla każdego pliku dodajemy jego nazwę do listy
+        
         for file in files:
             self.files_listbox.insert(tk.END, file)
             
-        # Dla widgetu `self.files_listbox` wiążemy zdarzenie `<Double-Button-1>`
-        # (kliknięcie lewym przyciskiem myszy podwójnie) z funkcją switchImage
         self.files_listbox.bind("<Double-Button-1>", self.switchImage)
         
+   
+
     def switchImage(self, event):
-        # Pobieramy indeks elementu, na którym kliknięto
+        
         index = self.files_listbox.curselection()[0]
-        # Pobieramy nazwę pliku na podstawie indeksu
+       
         file = self.files_listbox.get(index)
         path = "./files/"+file
 
@@ -59,56 +59,61 @@ class App:
     
         self.file_path = data["objects"][0]["file_path"]
         
-        # Wczytujemy obrazek z podanej ścieżki
+        
         image = Image.open(self.file_path)
         image = image.resize((300, 300))
-        # Konwertujemy obrazek na format zgodny z tkinter
+        
         image = ImageTk.PhotoImage(image)
-        # Zmieniamy obrazek wyświetlany w widget self.image_label na nowy obrazek
+        
         self.image_label.configure(image=image)
         self.image_label.image = image
        
-   
-      
-       
-
 
     def load_image(self):
-        # Otwieramy okno dialogowe do wyboru pliku
-        file_path = filedialog.askopenfilename()
-        self.file_path = file_path
-        # Jeśli użytkownik wybrał plik
-        if file_path:
-            # Próbujemy otworzyć plik jako obraz
+        file_paths = filedialog.askopenfilenames()
+        self.file_paths = file_paths
+
+        for file_path in file_paths:
             try:
                 image = Image.open(file_path)
                 image = image.resize((300, 300))
                 image = ImageTk.PhotoImage(image)
                 self.image_label.configure(image=image)
                 self.image_label.image = image
+
+                # Nowy kod do zapisywania pliku jsona
+                object_data = {"objects": [{"file_path": file_path, "objects_detected": []}]}
+                filename = file_path.split("/")[-1].split(".")[0]
+                json_file = f"files/{filename}.json"
+                with open(json_file, "w") as f:
+                    json.dump(object_data, f)
+                    
+                self.load_files()
             except:
-                # Jeśli otwarcie pliku jako obrazu się nie powiedzie, wyświetlamy komunikat o błędzie
                 messagebox.showerror("Błąd", "Nie można otworzyć pliku jako obrazu")
             
-    def draw_objects(self):
-        # Wczytaj zdjęcie i przekształć je na skalę szarości
-        image = cv2.imread(self.file_path)
-        gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+    # def draw_objects(self):
+    #     # Wczytaj zdjęcie i przekształć je na skalę szarości
+    #     image = cv2.imread(self.file_path)
+    #     gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
 
-        # Znajdź kontury obiektów
-        ret, thresh = cv2.threshold(gray, 127, 255, 0)
-        contours, hierarchy = cv2.findContours(thresh, cv2.RETR_TREE, cv2.CHAIN_APPROX_NONE)
+    #     # Znajdź kontury obiektów
+    #     ret, thresh = cv2.threshold(gray, 127, 255, 0)
+    #     contours, hierarchy = cv2.findContours(thresh, cv2.RETR_TREE, cv2.CHAIN_APPROX_NONE)
 
-        # Dla każdego konturu
-        for contour in contours:
-            # Narysuj kontur na obrazie
-            cv2.drawContours(image, contour, -1, (0, 255, 0), 2)
+    #     # Dla każdego konturu
+    #     for contour in contours:
+    #         # Narysuj kontur na obrazie
+    #         cv2.drawContours(image, contour, -1, (0, 255, 0), 2)
 
-        # Wyświetl obraz z obrysem obiektów
-        resized_image = cv2.resize(image, (600, 600))
-        cv2.imshow("Obiekty", resized_image)
-        cv2.waitKey(0)
-        cv2.destroyAllWindows()
+    #     # Wyświetl obraz z obrysem obiektów
+    #     resized_image = cv2.resize(image, (600, 600))
+    #     cv2.imshow("Obiekty", resized_image)
+    #     cv2.waitKey(0)
+    #     cv2.destroyAllWindows()
+
+   
+    
 
     def draw_objects_from_json(self):
         # Wczytaj zdjęcie i przekształć je na skalę szarości
@@ -122,15 +127,16 @@ class App:
         # Dla każdego obiektu zapisanego w słowniku "data"
         for obj in data["objects"]:
             # Pobierz współrzędne obiektu i nazwę
-            if(obj["type"]=="truck"):
+            if(obj["label"]=="truck"):
                 x = obj["x"]
                 y = obj["y"]
                 w = obj["width"]
                 h = obj["height"]
-                name = obj["type"]
+                name = obj["label"]
 
                 # Zdefiniuj punkty współrzędnych obrysu obiektu
                 points = np.array([[x, y], [x + w, y], [x + w, y + h], [x, y + h]], np.int32)
+               
                 # Narysuj obrysy obiektu na obrazie
                 cv2.polylines(image, [points], True, (0, 255, 0), 2)
                 # Wypisz nazwę obiektu na obrazie
@@ -161,11 +167,12 @@ class App:
         model.setInput(blob)
         output_layers = model.getUnconnectedOutLayersNames()
         output = model.forward(output_layers)
-
+        
         # Przetwórz wynik predykcji
         boxes = []
         confidences = []
         class_ids = []
+
         for output_layer in output:
             for detection in output_layer:
                 scores = detection[5:]
@@ -231,21 +238,20 @@ class App:
         # Odseparowujemy katalogi od nazwy pliku
         _, file_name = os.path.split(file_name)
         name="./files/"+ file_name + ".json"
-       
+        
         for i in indices:
             box = boxes[i]
             x, y, w, h = box
             data["objects"].append({
-                "type": class_names[class_ids[i]],
+                "label": class_names[class_ids[i]],
                 "file_path":self.file_path,
                 "file_name":file_name,
                 "x": x,
                 "y": y,
                 "width": w,
-                "height": h
+                "height": h,
+                "shapes" : self.detect_outlines()
             })
-        
-     
         
         # Zapisz dane do pliku JSON
         with open(name, "w") as f:
@@ -253,8 +259,26 @@ class App:
 
         self.json_path = name
         self.draw_objects_from_json()
+        self.draw_objects()
 
-   
+    def detect_outlines(self):
+        # Wczytaj zdjęcie
+        image = cv2.imread(self.file_path)
+        gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+        # Znajdź kontury obiektów
+        ret, thresh = cv2.threshold(gray, 127, 255, 0)
+        contours, _ = cv2.findContours(thresh, cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
+        # Iteruj przez kontury i znajdź ich środki
+        objects = []
+        for contour in contours:
+            M = cv2.moments(contour)
+            if M["m00"] != 0:
+                x = int(M["m10"] / M["m00"])
+                y = int(M["m01"] / M["m00"])
+                objects.append({"x": x, "y": y})
+        return objects
+
+         
 root = tk.Tk()
 app = App(root)
 root.mainloop()
