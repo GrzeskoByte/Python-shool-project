@@ -36,8 +36,6 @@ class App:
 
         self.files_frame.pack(padx=10, pady=10, side="left")
 
-
-        
         self.load_files()
 
 
@@ -133,11 +131,7 @@ class App:
     def detect_objects(self):
    
         image = cv2.imread(self.file_path)
-
-      
         model = cv2.dnn.readNetFromDarknet("yolov3.cfg", "yolov3.weights")
-
-     
         model.setPreferableBackend(cv2.dnn.DNN_BACKEND_OPENCV)
         model.setPreferableTarget(cv2.dnn.DNN_TARGET_CPU)
 
@@ -175,38 +169,6 @@ class App:
             "objects": []
         }
        
-        blob = cv2.dnn.blobFromImage(image, 1 / 255.0, (416, 416), swapRB=True, crop=False)
-
-        
-        model.setInput(blob)
-        output_layers = model.getUnconnectedOutLayersNames()
-        output = model.forward(output_layers)
-
-       
-        boxes = []
-        confidences = []
-        class_ids = []
-        for output_layer in output:
-            for detection in output_layer:
-                scores = detection[5:]
-                class_id = np.argmax(scores)
-                confidence = scores[class_id]
-                if confidence > 0.5:
-                    box = detection[:4] * np.array([image.shape[1], image.shape[0], image.shape[1], image.shape[0]])
-                    center_x, center_y, width, height = box.astype("int")
-                    x = int(center_x - (width / 2))
-                    y = int(center_y - (height / 2))
-                    boxes.append([x, y, int(width), int(height)])
-                    confidences.append(float(confidence))
-                    class_ids.append(class_id)
-
-       
-        indices = cv2.dnn.NMSBoxes(boxes, confidences, 0.5, 0.4)
-
-        
-        data = {
-            "objects": []
-        }
 
         with open("coco.names", "r") as f:
             class_names = f.read().strip().split("\n")
