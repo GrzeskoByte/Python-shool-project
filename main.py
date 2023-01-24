@@ -102,29 +102,6 @@ class App:
                 
                 messagebox.showerror("Błąd", "Nie można otworzyć pliku jako obrazu")
             
-    # def draw_objects(self):
-    #     # Wczytaj zdjęcie i przekształć je na skalę szarości
-    #     image = cv2.imread(self.file_path)
-    #     gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-
-    #     # Znajdź kontury obiektów
-    #     ret, thresh = cv2.threshold(gray, 127, 255, 0)
-    #     contours, hierarchy = cv2.findContours(thresh, cv2.RETR_TREE, cv2.CHAIN_APPROX_NONE)
-
-    #     # Dla każdego konturu
-    #     for contour in contours:
-    #         # Narysuj kontur na obrazie
-    #         cv2.drawContours(image, contour, -1, (0, 255, 0), 2)
-
-    #     # Wyświetl obraz z obrysem obiektów
-    #     resized_image = cv2.resize(image, (600, 600))
-    #     cv2.imshow("Obiekty", resized_image)
-    #     cv2.waitKey(0)
-    #     cv2.destroyAllWindows()
-
-   
-    
-
     def draw_objects_from_json(self):
         # Wczytaj zdjęcie i przekształć je na skalę szarości
         image = cv2.imread(self.file_path)
@@ -260,7 +237,7 @@ class App:
                 "y": y,
                 "width": w,
                 "height": h,
-                "shapes" : self.detect_outlines()
+                # "shapes" : self.detect_outlines()
             })
         
         # Zapisz dane do pliku JSON
@@ -269,7 +246,7 @@ class App:
 
         self.json_path = name
         self.draw_objects_from_json()
-        self.draw_objects()
+       
 
          
 root = tk.Tk()
