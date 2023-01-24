@@ -24,18 +24,14 @@ class App:
         self.image_label = tk.Label(self.image_frame)
         self.image_label.pack()
         
-        
         self.files_frame = tk.LabelFrame(self.root, text="Pliki")
 
-        # Stwórz Scrollbar i przypisz go do LabelFrame
         scrollbar = tk.Scrollbar(self.files_frame)
         scrollbar.pack(side="right", fill="y")
 
-        # Przypisz Scrollbar do Listbox
         self.files_listbox = tk.Listbox(self.files_frame, yscrollcommand=scrollbar.set)
         self.files_listbox.pack()
-
-        # Przypisz Listbox do Scrollbar
+  
         scrollbar.config(command=self.files_listbox.yview)
 
         self.files_frame.pack(padx=10, pady=10, side="left")
@@ -90,7 +86,7 @@ class App:
                 self.image_label.configure(image=image)
                 self.image_label.image = image
 
-                # Nowy kod do zapisywania pliku jsona
+              
                 object_data = {"objects": [{"file_path": file_path, "objects_detected": []}]}
                 filename = file_path.split("/")[-1].split(".")[0]
                 json_file = f"files/{filename}.json"
@@ -103,17 +99,17 @@ class App:
                 messagebox.showerror("Błąd", "Nie można otworzyć pliku jako obrazu")
             
     def draw_objects_from_json(self):
-        # Wczytaj zdjęcie i przekształć je na skalę szarości
+        
         image = cv2.imread(self.file_path)
         gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
 
-        # Wczytaj dane z pliku JSON
+      
         with open(self.json_path, "r") as f:
             data = json.load(f)
 
-        # Dla każdego obiektu zapisanego w słowniku "data"
+       
         for obj in data["objects"]:
-            # Pobierz współrzędne obiektu i nazwę
+            
             if(obj["label"]=="truck"):
                 x = obj["x"]
                 y = obj["y"]
@@ -121,15 +117,13 @@ class App:
                 h = obj["height"]
                 name = obj["label"]
 
-                # Zdefiniuj punkty współrzędnych obrysu obiektu
+              
                 points = np.array([[x, y], [x + w, y], [x + w, y + h], [x, y + h]], np.int32)
-               
-                # Narysuj obrysy obiektu na obrazie
+
                 cv2.polylines(image, [points], True, (0, 255, 0), 2)
-                # Wypisz nazwę obiektu na obrazie
                 cv2.putText(image, name, (x, y - 10), cv2.FONT_HERSHEY_SIMPLEX, 3.0, (0, 255, 0), 2)
 
-        # Wyświetl obraz z obrysem obiektów
+        
         resized_image = cv2.resize(image, (600, 600))
         cv2.imshow("Obiekty", resized_image)
         cv2.waitKey(0)
@@ -137,25 +131,25 @@ class App:
 
 
     def detect_objects(self):
-    # Wczytaj zdjęcie
+   
         image = cv2.imread(self.file_path)
 
-        # Pobierz model YOLO z repozytorium OpenCV
+      
         model = cv2.dnn.readNetFromDarknet("yolov3.cfg", "yolov3.weights")
 
-        # Przygotuj model do użycia
+     
         model.setPreferableBackend(cv2.dnn.DNN_BACKEND_OPENCV)
         model.setPreferableTarget(cv2.dnn.DNN_TARGET_CPU)
 
-        # Przygotuj zdjęcie do przetworzenia przez model
+       
         blob = cv2.dnn.blobFromImage(image, 1 / 255.0, (416, 416), swapRB=True, crop=False)
 
-        # Wykonaj przez model predykcję
+       
         model.setInput(blob)
         output_layers = model.getUnconnectedOutLayersNames()
         output = model.forward(output_layers)
         
-        # Przetwórz wynik predykcji
+       
         boxes = []
         confidences = []
         class_ids = []
@@ -174,22 +168,21 @@ class App:
                     confidences.append(float(confidence))
                     class_ids.append(class_id)
 
-        # Zastosuj filtrowanie pudełek
+        
         indices = cv2.dnn.NMSBoxes(boxes, confidences, 0.5, 0.4)
 
-        # Przygotuj słownik z współrzędnymi obiektów
         data = {
             "objects": []
         }
-        # Przygotuj zdjęcie do przetworzenia przez model
+       
         blob = cv2.dnn.blobFromImage(image, 1 / 255.0, (416, 416), swapRB=True, crop=False)
 
-        # Wykonaj przez model predykcję
+        
         model.setInput(blob)
         output_layers = model.getUnconnectedOutLayersNames()
         output = model.forward(output_layers)
 
-        # Przetwórz wynik predykcji
+       
         boxes = []
         confidences = []
         class_ids = []
@@ -207,22 +200,20 @@ class App:
                     confidences.append(float(confidence))
                     class_ids.append(class_id)
 
-        # Zastosuj filtrowanie pudełek
+       
         indices = cv2.dnn.NMSBoxes(boxes, confidences, 0.5, 0.4)
 
-        # Przygotuj słownik z współrzędnymi obiektów
+        
         data = {
             "objects": []
         }
 
-        # Wczytaj nazwy klas z pliku "coco.names"
         with open("coco.names", "r") as f:
             class_names = f.read().strip().split("\n")
 
-        # Dla każdego znalezionego obiektu dodaj do słownika jego współrzędne oraz typ
 
         file_name, file_extension = os.path.splitext(self.file_path)
-        # Odseparowujemy katalogi od nazwy pliku
+       
         _, file_name = os.path.split(file_name)
         name="./files/"+ file_name + ".json"
         
@@ -237,10 +228,10 @@ class App:
                 "y": y,
                 "width": w,
                 "height": h,
-                # "shapes" : self.detect_outlines()
+             
             })
         
-        # Zapisz dane do pliku JSON
+       
         with open(name, "w") as f:
              json.dump(data, f)
 
