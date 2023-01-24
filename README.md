@@ -14,3 +14,7 @@
     - yolov3.weights
     - coco.names (for yolov3)
     - create empty "files" directory in root file
+    
+### How to run
+- u have to install all dependecies and attach files from above
+in root file 
