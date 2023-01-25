@@ -18,3 +18,4 @@
 ### How to run
 - u have to install all dependecies and attach files from above
 in root file 
+- fetch weights file from this url : https://pjreddie.com/media/files/yolov3.weights  
